@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibrant Rainbow Bubble Lab</title>
+    <style>
+        /* 1. GLOBAL RESET & BACKGROUND */
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: radial-gradient(circle at center, #1e293b 0%, #080c14 100%); 
+            color: white; 
+            overflow: hidden; 
+            height: 100vh; 
+            margin: 0; 
+            display: flex;
+        }
+
+        /* 2. SIDEBAR (CONTROL PANEL) */
+        .sidebar {
+            width: 320px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 { 
+            color: #00ffff; 
+            font-size: 22px; 
+            margin-bottom: 30px; 
+            letter-spacing: 2px; 
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        input { 
+            width: 100%; padding: 14px; margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.4); border: 1px solid #334155;
+            border-radius: 12px; color: white; outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); }
+
+        button { 
+            width: 100%; padding: 15px; background: #00ffff; 
+            color: #080c14; border: none; border-radius: 12px;
+            font-weight: 900; cursor: pointer; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        button:hover { 
+            background: #ffffff; 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.5); 
+        }
+
+        #total-display { 
+            font-size: 32px; margin-top: 50px; font-weight: bold;
+            color: #ff00ff; text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .hint { font-size: 12px; color: #64748b; margin-top: 20px; line-height: 1.4; }
+
+        /* 3. VIBRANT RAINBOW BUBBLES */
+        #stage { flex-grow: 1; position: relative; cursor: crosshair; }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            
+            /* The Vibrant Rainbow Gradient */
+            background: linear-gradient(45deg, #ff00ff, #00ffff, #ff0055, #00ff00, #ff9900);
+            background-size: 400% 400%;
+            
+            /* Animations */
+            animation: float 8s ease-in-out infinite, rainbowFlow 6s linear infinite;
+            
+            /* Glassmorphism & Neon Glow */
+            backdrop-filter: blur(4px);
+            border: 3px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.2), 
+                        inset 0 0 20px rgba(255, 255, 255, 0.4);
+            
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s, opacity 0.3s;
+        }
+
+        .bubble:hover {
+            transform: scale(1.25) !important;
+            filter: brightness(1.3) saturate(1.5);
+            z-index: 100;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.6);
+        }
+
+        .bubble span { font-size: 14px; text-transform: uppercase; opacity: 0.9; }
+        .bubble b { font-size: 20px; }
+
+        /* 4. ANIMATIONS */
+        @keyframes rainbowFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(15px, -25px) rotate(3deg); }
+            66% { transform: translate(-15px, -15px) rotate(-3deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>📈💰 PennyPulse</h2>
+        <input type="text" id="name" placeholder="Item/Expense Name">
+        <input type="number" id="amount" placeholder="Amount ($)">
+        <button onclick="createBubble()">Deploy Bubble</button>
+
+        <div id="total-display">TOTAL: $0.00</div>
+        
+        <div class="hint">
+            • Bubbles scale by value<br>
+            • Hover to magnify<br>
+            • Click bubble to "POP" and delete
+        </div>
+    </div>
+
+    <div id="stage"></div>
+
+    <script>
+        let grandTotal = 0;
+
+        function createBubble() {
+            // 1. Capture inputs
+            const nameEl = document.getElementById('name');
+            const amountEl = document.getElementById('amount');
+            const stage = document.getElementById('stage');
+
+            const name = nameEl.value;
+            const amount = parseFloat(amountEl.value);
+
+            // Validation
+            if (!name || isNaN(amount)) {
+                alert("Please enter a valid name and amount!");
+                return;
+            }
+
+            // 2. Update the Global Math
+            grandTotal += amount;
+            document.getElementById('total-display').innerText = `TOTAL: $${grandTotal.toFixed(2)}`;
+
+            // 3. Calculate Dynamic Size (Clamping between 90px and 220px)
+            const size = Math.min(Math.max(amount * 2, 90), 220); 
+
+            // 4. Create the Bubble Object
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            // Randomize position within the stage
+            // We subtract the bubble size to keep it within view
+            const randomX = Math.random() * (window.innerWidth - 480) + 40;
+            const randomY = Math.random() * (window.innerHeight - 250) + 50;
+
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${randomX}px`;
+            bubble.style.top = `${randomY}px`;
+            
+            // Populate bubble content
+            bubble.innerHTML = `<span>${name}</span><b>$${amount.toFixed(2)}</b>`;
+
+            // 5. INTERACTIVE FEATURE: Click to Pop
+            bubble.onclick = function() {
+                // Subtract amount from total when popped
+                grandTotal -= amount;
+                document.getElementById('total-display').innerText = `TOTAL: $${grandTotal.toFixed(2)}`;
+                
+                // Visual pop effect
+                this.style.transform = "scale(0) rotate(360deg)";
+                this.style.opacity = "0";
+                
+                // Remove from DOM after animation completes
+                setTimeout(() => this.remove(), 400);
+            };
+
+            // 6. Deploy to Stage
+            stage.appendChild(bubble);
+
+            // 7. Reset inputs and focus back to name field
+            nameEl.value = "";
+            amountEl.value = "";
+            nameEl.focus();
+        }
+    </script>
+</body>
+</html>
